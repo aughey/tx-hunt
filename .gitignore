@@ -1,0 +1,2 @@
+# Ignore training data files
+train_data/training_walks.csv 
