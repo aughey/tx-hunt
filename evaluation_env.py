@@ -1,5 +1,6 @@
 from typing import Dict, Optional, Tuple
 import requests
+import numpy as np
 from requests.adapters import HTTPAdapter
 
 class RemoteEvaluationEnv:
@@ -31,7 +32,8 @@ class RemoteEvaluationEnv:
         Starts a fresh walk: increments walk_id, calls /start, and returns:
         {"walk_id": int, "ij":(i,j), "xy":(x,y), "rssi": rssi}
         """
-        self._walk_counter += 1
+        # set walk counter to a random number
+        self._walk_counter = np.random.randint(0, 10000000)
         self.current_walk_id = self._walk_counter
         payload = {
             "team_id": self.team,
@@ -67,6 +69,9 @@ class RemoteEvaluationEnv:
         resp = self.session.post(f"{self.base}/step", json=payload, timeout=5)
         if resp.status_code == 403:
             raise ValueError(f"Illegal move in walk {self.current_walk_id}")
+        if resp.status_code == 400:
+            error_msg = resp.json()["detail"]
+            raise ValueError(f"Error in step: {error_msg}")
         resp.raise_for_status()
 
         data = resp.json()
